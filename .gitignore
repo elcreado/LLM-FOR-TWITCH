@@ -1,0 +1,12 @@
+# Node modules
+node_modules/
+
+# Variables de entorno
+.env
+
+# Archivos puntuales
+subtitles.txt
+tts_output.mp3
+
+# Tokens (todos los json dentro de data/tokens)
+data/tokens/*.json

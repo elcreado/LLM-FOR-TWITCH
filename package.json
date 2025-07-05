@@ -1,0 +1,25 @@
+{
+  "name": "tts_appv2",
+  "version": "0.0.2",
+  "description": "A TTS bot AI APLICATION",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "test.js"
+  },
+  "author": "Elcreado",
+  "license": "ISC",
+  "devDependencies": {
+    "@gradio/client": "^1.15.4"
+  },
+  "dependencies": {
+    "@twurple/api": "^7.3.0",
+    "@twurple/auth": "^7.3.0",
+    "@twurple/chat": "^7.3.0",
+    "@twurple/eventsub-ws": "^7.3.0",
+    "dotenv": "^17.0.1",
+    "fetch-blob": "^4.0.0",
+    "play-sound": "^1.1.6",
+    "sound-play": "^1.1.0"
+  }
+}
