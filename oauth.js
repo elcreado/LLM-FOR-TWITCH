@@ -1,10 +1,15 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { exchangeCode } from '@twurple/auth';
 import { writeFile } from 'fs/promises';
 
-const clientId = 'k5mrdmmpanc86ykeec581ai1v5338o';
-const clientSecret = 'b87b83l6akkha2ff3t9d8x3x5p5hru';
+const { TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_BROADCASTER_LOGIN } = process.env;
+
+const clientId = TWITCH_CLIENT_ID;
+const clientSecret = TWITCH_CLIENT_SECRET;
 const redirectUri = 'http://localhost';
-const code = 'g4lnvrk14pla8oz8ft5lfgogrcdeyc';
+const code = 'vc786fj2v6xftdajfh9z1bi2sp7p7c';
 
 try {
   const tokenData = await exchangeCode(clientId, clientSecret, code, redirectUri);

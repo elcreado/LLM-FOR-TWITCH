@@ -5,9 +5,7 @@ import { RefreshingAuthProvider } from '@twurple/auth';
 import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 
-
 import fs from 'fs/promises';
-import { blobFromSync } from 'fetch-blob/from.js';
 
 import sound from "sound-play";
 import path from "path";
@@ -15,15 +13,20 @@ import path from "path";
 import fss from "fs";
 import fetch from "node-fetch";
 
-let twitchListener;
-let ttsBusy = false;
-
 //Conectando con la IA 
 
 import { Client, handle_file } from "@gradio/client";
 import { EventSubWsListener } from '@twurple/eventsub-ws';
 import { channel } from 'diagnostics_channel';
+
+import { startVoiceRecorder } from './scripts/voiceRecorder.cjs';
+
+let twitchListener;
+let ttsBusy = false;
+
+const activeUsers = new Set();
 const client = await Client.connect("yuntian-deng/ChatGPT");
+
 
 async function messageApi(message, user, text) {
     const result = await client.predict("/predict", {
@@ -39,7 +42,7 @@ async function messageApi(message, user, text) {
     const botReply = lastPair[1];
     console.log("Respuesta del bot:", botReply);
 
-    ragMemory.push({userMessage: text, response: message});
+    ragMemory.push({ userMessage: text, response: message });
 
     await ttsAndPlay(botReply);
 };
@@ -133,6 +136,21 @@ function buildPrompt(newMsg, currentUser) {
     return p;
 }
 
+// Antes de main(), podrías hacer:
+try {
+    const prev = JSON.parse(await fs.readFile('./data/activeUsers.json', 'utf-8'));
+    prev.forEach(u => activeUsers.add(u));
+    console.log(`🔰 Cargados ${prev.length} usuarios del archivo.`);
+} catch { }
+
+//Volcamos todo a un JSON
+
+async function saveActiveUsers() {
+    const arr = [...activeUsers];
+    await fs.writeFile('./data/activeUsers.json', JSON.stringify(arr, null, 2), 'utf-8');
+    console.log(`✅ Guardados ${arr.length} usuarios activos.`);
+}
+
 //Conexion con TWITCH y mandado de mensaje
 
 async function main() {
@@ -142,6 +160,7 @@ async function main() {
         process.exit(1);
     }
 
+    startVoiceRecorder();
     const tokenData = JSON.parse(await fs.readFile('./data/tokens/tokens.json', 'utf-8'));
 
     const authProvider = new RefreshingAuthProvider({
@@ -195,6 +214,10 @@ async function main() {
     });
 
     chatClient.onMessage(async (channel, user, text, msg) => {
+        //Metemos el usuario a la lista
+        activeUsers.add(user);
+        console.log(`🔰 El usuario ${user} ah sido añadido a la lista.`);
+
         if (msg.isRedemption) {
             console.log("🔰| El mensaje es mediante puntos del canal.");
             return;
@@ -206,7 +229,7 @@ async function main() {
         }
 
         // Decisión de responder: 1 de cada 5 o si menciona "sara"
-        const shouldRespond = Math.floor(Math.random() * 12) === 0; // random 0–4, 1/5 de chance
+        const shouldRespond = Math.floor(Math.random() * 12) === 0;
 
         if (!shouldRespond) {
             return console.log(`[SKIP] ${user}: "${text}" (no le tocó)`);
@@ -225,5 +248,7 @@ async function main() {
     await chatClient.connect();
 
 };
+
+setInterval(saveActiveUsers, 30_000);
 
 main();

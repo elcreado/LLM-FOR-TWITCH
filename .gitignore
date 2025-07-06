@@ -7,6 +7,8 @@ node_modules/
 # Archivos puntuales
 subtitles.txt
 tts_output.mp3
+command.wav
 
 # Tokens (todos los json dentro de data/tokens)
 data/tokens/*.json
+data/activeUsers.json
