@@ -1,28 +1,47 @@
+// index.js
 import dotenv from 'dotenv';
 dotenv.config();
 
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ChatClient } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
-
-import fs from 'fs/promises';
-
-//Conectando con la IA 
-
-import { Client, handle_file } from "@gradio/client";
 import { EventSubWsListener } from '@twurple/eventsub-ws';
-import { channel } from 'diagnostics_channel';
 
-import { startVoiceRecorder } from './scripts/voiceRecorder.cjs';
+import { readFile, writeFile } from 'fs/promises';
+
 import { messageApi, ragMemory } from './scripts/chatbotCall.js';
+import { moderateCommand } from './scripts/moderationApi.js';
+import { executeModeration } from './scripts/moderationSystem.js';
+import { startVoiceRecorder } from './scripts/voiceRecorder.js';
 
 
-let twitchListener;
-
+// ————————————————————————————————————————————————————————————
+// CARGA INICIAL DE USUARIOS ACTIVOS
+// ————————————————————————————————————————————————————————————
 const activeUsers = new Set();
 
+try {
+    const raw = await readFile('./data/activeUsers.json', 'utf-8');
+    JSON.parse(raw).forEach(u => activeUsers.add(u));
+    console.log(`🔰 Cargados ${activeUsers.size} usuarios activos.`);
+} catch {
+    console.log('🔰 No hay archivo de usuarios activos; arrancando con conjunto vacío.');
+}
 
-//Configuracion de PROMPT
+// Guarda periódicamente la lista de usuarios
+async function saveActiveUsers() {
+    await writeFile(
+        './data/activeUsers.json',
+        JSON.stringify([...activeUsers], null, 2),
+        'utf-8'
+    );
+    console.log(`✅ Guardados ${activeUsers.size} usuarios activos.`);
+}
+setInterval(saveActiveUsers, 30_000);
+
+// ————————————————————————————————————————————————————————————
+// Construccion de PROMRP para SARA
+// ————————————————————————————————————————————————————————————
 
 const SYSTEM_PROMPT = "Eres Sara, la asistente/novia de Elcreado_GG. Responde con humor, menciona al usuario.";
 
@@ -62,119 +81,112 @@ function buildPrompt(newMsg, currentUser) {
     return p;
 }
 
-// Antes de main(), podrías hacer:
-try {
-    const prev = JSON.parse(await fs.readFile('./data/activeUsers.json', 'utf-8'));
-    prev.forEach(u => activeUsers.add(u));
-    console.log(`🔰 Cargados ${prev.length} usuarios del archivo.`);
-} catch { }
 
-//Volcamos todo a un JSON
-
-async function saveActiveUsers() {
-    const arr = [...activeUsers];
-    await fs.writeFile('./data/activeUsers.json', JSON.stringify(arr, null, 2), 'utf-8');
-    console.log(`✅ Guardados ${arr.length} usuarios activos.`);
-}
-
-//Conexion con TWITCH y mandado de mensaje
+// ————————————————————————————————————————————————————————————
+// FUNCIÓN PRINCIPAL
+// ————————————————————————————————————————————————————————————
 
 async function main() {
-    const { TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_BROADCASTER_LOGIN } = process.env;
+    // 1) Variables de entorno
+    const {
+        TWITCH_CLIENT_ID,
+        TWITCH_CLIENT_SECRET,
+        TWITCH_BROADCASTER_LOGIN
+    } = process.env;
     if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET || !TWITCH_BROADCASTER_LOGIN) {
-        console.error('❌ Faltan variables: TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET o TWITCH_BROADCASTER_LOGIN');
+        console.error('❌ Faltan TWITCH_CLIENT_ID/SECRET o BROADCASTER_LOGIN en .env');
         process.exit(1);
     }
 
-    startVoiceRecorder();
-    const tokenData = JSON.parse(await fs.readFile('./data/tokens/tokens.json', 'utf-8'));
-
+    // 2) Autenticación y clientes Twurple
+    const tokenData = JSON.parse(await readFile('./data/tokens/tokens.json', 'utf-8'));
     const authProvider = new RefreshingAuthProvider({
         clientId: TWITCH_CLIENT_ID,
         clientSecret: TWITCH_CLIENT_SECRET
     });
+    authProvider.onRefresh(async (userId, newTokens) => {
+        await writeFile(
+            `./data/tokens/tokens.${userId}.json`,
+            JSON.stringify(newTokens, null, 2),
+            'utf-8'
+        );
+        console.log('🔄 Tokens refrescados y guardados para', userId);
+    });
+    await authProvider.addUserForToken(tokenData, [
+        'chat',
+        'channel:read:redemptions',
+        'moderator:manage:banned_users',
+        'channel:manage:broadcast'
+    ]);
 
-    authProvider.onRefresh(async (userId, newTokenData) => {
-        console.log("Ah entrado")
-        try {
-            await fs.writeFile(`./data/tokens/tokens.${userId}.json`, JSON.stringify(newTokenData, null, 4), 'utf-8');
-            console.log("✅ Archivo de TOKEN actualizado correctamente.");
-        } catch (err) {
-            console.error("⚠️ Ah ocurrido un error: ", err);
-        }
+    const chatClient = new ChatClient({
+        authProvider,
+        channels: [TWITCH_CLIENT_ID]
+    });
+    const apiClient = new ApiClient({ authProvider });
+
+    // 3) EventSub para puntos de canal
+    const me = await apiClient.users.getUserByName(TWITCH_BROADCASTER_LOGIN);
+    const listener = new EventSubWsListener({ authProvider, apiClient });
+    await listener.start();
+    listener.onChannelRedemptionAdd(me.id, async (event) => {
+        const { userDisplayName, rewardTitle, input } = event;
+        if (rewardTitle !== 'Sara') return;
+        const prompt = buildPrompt(input, userDisplayName);
+        await messageApi(prompt, userDisplayName, input);
     });
 
-    await authProvider.addUserForToken(tokenData, ['chat', 'channel:read:redemptions']);
-
-    const chatClient = new ChatClient({ authProvider, channels: [TWITCH_BROADCASTER_LOGIN] });
-
-    chatClient.onConnect(() => {
-        console.log("✅ Bot conectado a Twitch y listo para leer el chat.");
-    });
-
-    const api = new ApiClient({ authProvider });
-
-    const user = await api.users.getUserByName(TWITCH_BROADCASTER_LOGIN);
-
-    twitchListener = new EventSubWsListener({ authProvider, apiClient: api });
-
-    await twitchListener.start();
-
-    twitchListener.onChannelRedemptionAdd(user.id, event => {
-        (async () => {
-            try {
-                const user = event.userDisplayName;
-                const title = event.rewardTitle;
-                if (title == "Sara") {
-                    const message = event.input;
-                    const prompt = buildPrompt(message, user);
-
-                    await messageApi(prompt, user, message);
-                } else {
-                    return console.log("🔰| La recompensa no es para SARA.");
-                }
-            } catch (err) {
-                console.error("⚠️| Ah ocurrido un error respecto a las recompensas: ", err);
-            }
-        })();
-    });
-
+    // 4) Chat listener
     chatClient.onMessage(async (channel, user, text, msg) => {
-        //Metemos el usuario a la lista
-        activeUsers.add(user);
-        console.log(`🔰 El usuario ${user} ah sido añadido a la lista.`);
-
-        if (msg.isRedemption) {
-            console.log("🔰| El mensaje es mediante puntos del canal.");
-            return;
-        }
-
-        if (ttsBusy) {
-            console.log("🔰| TTS ocupado, el mensaje será completamente ignorado.");
-            return;
-        }
-
-        // Decisión de responder: 1 de cada 5 o si menciona "sara"
-        const shouldRespond = Math.floor(Math.random() * 12) === 0;
-
-        if (!shouldRespond) {
-            return console.log(`[SKIP] ${user}: "${text}" (no le tocó)`);
-        }
-
-        const newPrompt = buildPrompt(text, user);
-
-        try {
-            console.log(text);
-            await messageApi(newPrompt, user, text);
-        } catch (e) {
-            console.log("Ah sucedido un error: ", e);
+        // Mantén lista de usuarios
+        activeUsers.add(user.userName || user.displayName);
+        // Ignora redemptions (ya gestionados arriba)
+        if (msg.isRedemption) return;
+        // Decide si responder con SARA
+        if (Math.random() < 0.1 || text.toLowerCase().includes('sara')) {
+            const prompt = buildPrompt(text, user);
+            await messageApi(prompt, user, text);
         }
     });
 
+    // 5) Lógica de moderación por voz
+    // Dentro de tu index.js, en la parte de startVoiceRecorder:
+    startVoiceRecorder(async (modJson) => {
+        const { action, target, value } = modJson;
+        const channelName = TWITCH_BROADCASTER_LOGIN;
+        const broadcasterId = me.id;  // tu ID de broadcaster obtenido antes
+
+        // 1) Resolver el login exacto en tu set de activeUsers
+        const matched = [...activeUsers].find(u => {
+            return (
+                typeof u === 'string' &&
+                typeof target === 'string' &&
+                u.toLowerCase() === target.toLowerCase()
+            );
+        });
+
+        // 2) Llamamos a executeModeration con el login resuelto
+        try {
+            await executeModeration(
+                modJson,
+                apiClient,
+                chatClient,
+                broadcasterId,
+                TWITCH_BROADCASTER_LOGIN
+            );
+        } catch (err) {
+            console.error('Error en executeModeration:', err);
+            await chatClient.say(
+                channelName,
+                `/me ⚠️ No pude ejecutar "${action}" sobre ${matched}.`
+            );
+        }
+    });
+
+
+    // 6) Conexión final
     await chatClient.connect();
-
-};
-
-setInterval(saveActiveUsers, 30_000);
+    console.log('🚀 Bot conectado y listo.');
+}
 
 main();
