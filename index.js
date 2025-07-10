@@ -37,7 +37,6 @@ async function saveActiveUsers() {
     );
     console.log(`✅ Guardados ${activeUsers.size} usuarios activos.`);
 }
-setInterval(saveActiveUsers, 30_000);
 
 // ————————————————————————————————————————————————————————————
 // Construccion de PROMRP para SARA
@@ -121,7 +120,7 @@ async function main() {
 
     const chatClient = new ChatClient({
         authProvider,
-        channels: [TWITCH_CLIENT_ID]
+        channels: [TWITCH_BROADCASTER_LOGIN]
     });
     const apiClient = new ApiClient({ authProvider });
 
@@ -139,7 +138,13 @@ async function main() {
     // 4) Chat listener
     chatClient.onMessage(async (channel, user, text, msg) => {
         // Mantén lista de usuarios
-        activeUsers.add(user.userName || user.displayName);
+        if (!activeUsers.has(user)) {
+            activeUsers.add(user);
+            saveActiveUsers();
+            console.log(user);
+        } else {
+            console.log("✅| Ya está en la lista.");
+        }
         // Ignora redemptions (ya gestionados arriba)
         if (msg.isRedemption) return;
         // Decide si responder con SARA
