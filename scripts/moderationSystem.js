@@ -1,4 +1,7 @@
 // moderationSystem.js
+import { ttsAndPlay } from "./ttsVoice.js";
+import { messageApi, buildPrompt } from "./chatbotCall.js";
+
 export async function executeModeration(
   { action, target, value },
   apiClient,
@@ -70,6 +73,13 @@ export async function executeModeration(
 
       case 'raid':
         await chatClient.say(channelName, `/raid ${user.displayName}`);
+        break;
+
+      case 'dialogo':
+        const user = "Elcreado_GG";
+        const prompt = buildPrompt(value, user);
+        await messageApi(prompt, user, value);
+        
         break;
 
       default:

@@ -9,7 +9,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 
 import { readFile, writeFile } from 'fs/promises';
 
-import { messageApi, ragMemory } from './scripts/chatbotCall.js';
+import { messageApi, ragMemory, buildPrompt } from './scripts/chatbotCall.js';
 import { moderateCommand } from './scripts/moderationApi.js';
 import { executeModeration } from './scripts/moderationSystem.js';
 import { startVoiceRecorder } from './scripts/voiceRecorder.js';
@@ -37,49 +37,6 @@ async function saveActiveUsers() {
     );
     console.log(`✅ Guardados ${activeUsers.size} usuarios activos.`);
 }
-
-// ————————————————————————————————————————————————————————————
-// Construccion de PROMRP para SARA
-// ————————————————————————————————————————————————————————————
-
-const SYSTEM_PROMPT = "Eres Sara, la asistente/novia de Elcreado_GG. Responde con humor, menciona al usuario.";
-
-const FEW_SHOT_EXAMPLES = [
-    {
-        message: '¿Quien eres?',
-        response: 'Soy sara, la acompañante de nuestro guapo, carismatico, lindo, y pobre streamer Elcreado'
-    },
-    {
-        message: '¿Sabes quien es el Streamer?',
-        response: 'El guapo carismatico y lindo novio mio Elcreado por supuesto.'
-    },
-    {
-        message: '¿Eres la asistente/novia del streamer?',
-        response: 'Asi es, en un tiempo fue mi enemigo, en un tiempo, fue mi aliado y amigo. Esta relacion se basa en hechos un poco, complicados.'
-    }
-];
-
-function buildPrompt(newMsg, currentUser) {
-    let p = SYSTEM_PROMPT;
-
-    for (const ex of FEW_SHOT_EXAMPLES) {
-        p += `M: "${ex.message}"\nR: "${ex.response}"\n\n`;
-    }
-
-    const last = ragMemory.filter(e => e.user === currentUser).slice(-3);
-    if (last.length) {
-        p += 'Interacciones previas:\n';
-        for (const it of last) {
-            p += `M: "${it.message}" → R: "${it.response}"\n`;
-        }
-        p += '\n';
-    }
-    p += `Ahora responde brevemente al siguiente mensaje del usuario ${currentUser}:\n${currentUser}: "${newMsg}"\n`;
-
-    console.log(p);
-    return p;
-}
-
 
 // ————————————————————————————————————————————————————————————
 // FUNCIÓN PRINCIPAL
@@ -128,6 +85,7 @@ async function main() {
     const me = await apiClient.users.getUserByName(TWITCH_BROADCASTER_LOGIN);
     const listener = new EventSubWsListener({ authProvider, apiClient });
     await listener.start();
+    
     listener.onChannelRedemptionAdd(me.id, async (event) => {
         const { userDisplayName, rewardTitle, input } = event;
         if (rewardTitle !== 'Sara') return;
@@ -143,12 +101,16 @@ async function main() {
             saveActiveUsers();
             console.log(user);
         } else {
-            console.log("✅| Ya está en la lista.");
+            console.log("✅ Ya está en la lista.");
         }
         // Ignora redemptions (ya gestionados arriba)
         if (msg.isRedemption) return;
         // Decide si responder con SARA
-        if (Math.random() < 0.1 || text.toLowerCase().includes('sara')) {
+
+        const disparoAleatorio = Math.random() < 0.1;
+
+        console.log(user);
+        if (disparoAleatorio) {
             const prompt = buildPrompt(text, user);
             await messageApi(prompt, user, text);
         }

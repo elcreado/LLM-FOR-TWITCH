@@ -31,7 +31,7 @@ let ffmpegProc;
 function buildModerationPrompt(transcription) {
   return `
 Eres un asistente que, dado un mensaje de Twitch, extrae la acción de moderación y su objetivo en formato JSON.
-Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid.
+Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid, dialogo.
 Formato de salida EXACTO (sin texto adicional):
 {
   "action": "ban",
