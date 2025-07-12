@@ -3,7 +3,7 @@ import ffmpegPath from 'ffmpeg-static';
 import { spawn } from 'child_process';
 import { readFile } from 'fs/promises';
 import { GlobalKeyboardListener } from 'node-global-key-listener';
-import { moderateCommand } from './moderationApi.js';
+import { moderateCommand } from '../Twitch/moderationApi.js';
 import dotenv from 'dotenv';
 dotenv.config();
 

@@ -1,6 +1,6 @@
 // moderationSystem.js
-import { ttsAndPlay } from "./ttsVoice.js";
-import { messageApi, buildPrompt } from "./chatbotCall.js";
+import { ttsAndPlay } from "../Bot/ttsVoice.js";
+import { messageApi, buildPrompt } from "../Bot/chatbotCall.js";
 
 export async function executeModeration(
   { action, target, value },

@@ -9,15 +9,16 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 
 import { readFile, writeFile } from 'fs/promises';
 
-import { messageApi, ragMemory, buildPrompt } from './scripts/chatbotCall.js';
-import { moderateCommand } from './scripts/moderationApi.js';
-import { executeModeration } from './scripts/moderationSystem.js';
-import { startVoiceRecorder } from './scripts/voiceRecorder.js';
+import { messageApi, ragMemory, buildPrompt } from './scripts/Bot/chatbotCall.js';
+import { moderateCommand } from './scripts/Twitch/moderationApi.js';
+import { executeModeration } from './scripts/Twitch/moderationSystem.js';
+import { startVoiceRecorder } from './scripts/Bot/voiceRecorder.js';
 
 
 // ————————————————————————————————————————————————————————————
 // CARGA INICIAL DE USUARIOS ACTIVOS
 // ————————————————————————————————————————————————————————————
+
 const activeUsers = new Set();
 
 try {
