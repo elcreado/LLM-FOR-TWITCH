@@ -14,7 +14,7 @@ async function buildModerationPrompt(transcription) {
 Eres un asistente que, dado un mensaje de Twitch, extrae la(s) acción(es) de moderación y su objetivo en formato JSON.
 Cuando nombre a un usuario, busca en la lista de "Usuarios activos" el nombre más parecido; si no hay match, arroja null.
 Usuarios activos: [${usersList}]
-Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid, dialogo.
+Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid, dialogo, pedir, usuario, redes.
 El mensaje no tiene que contener al 100% la palabra (por ejemplo "desbanea" → "unban", "timea" → "timeout").
 Al cambiar títulos tienes libertad creativa (puedes mejorar con emojis, por ejemplo: 
 "Cambia el título a Jugando con seguidores" → "Jugando con mis seguidores 😍").

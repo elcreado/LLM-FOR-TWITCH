@@ -33,7 +33,7 @@ export async function executeModeration(
     }
 
   } else if (target == null) {
-      console.log("El target es null");
+    console.log("El target es null");
   }
 
   // 4) Ahora que user existe, ejecutamos la acción
@@ -82,9 +82,29 @@ export async function executeModeration(
       case 'dialogo':
         const prompt = buildPrompt(value, "Elcreado_GG");
         await messageApi(prompt, user, value);
-        
         break;
 
+      case 'usuario':
+        if (target) {
+          await chatClient.say(channelName, `Usuario de roblox: Elcreado123456 ${target}`);
+        } else {
+          await chatClient.say(channelName, `Usuario de roblox: Elcreado123456`);
+        }
+        break;
+
+      case 'pedir':
+        if (target) {
+          await chatClient.say(channelName, `Deja de pedir mamadas y mejor damelas o que wey? ${target}`);
+        } else {
+          await chatClient.say(channelName, `Deja de pedir mamadas y mejor damelas o que wey?`);
+        }
+        break;
+
+      case 'redes':
+        await chatClient.say(channelName, `Redes sociales: \n 
+          Instagram: https://www.instagram.com/elcreado_gg/ \n
+          Tiktok: https://www.tiktok.com/@elcreado_gg`);
+        break;
       default:
         await chatClient.say(channelName, `/me ❓ Acción desconocida: ${action}`);
     }
