@@ -1,4 +1,8 @@
 import { Client, handle_file } from "@gradio/client";
+
+import { promises as fs, constants, readFile } from "fs";
+import path from 'path';
+
 import { ttsAndPlay } from "./ttsVoice.js";
 
 const client = await Client.connect("yuntian-deng/ChatGPT");
@@ -21,6 +25,45 @@ const FEW_SHOT_EXAMPLES = [
         response: 'Si, ¿Podrías dejar de preguntar cosas estupidas? Gracias.'
     }
 ];
+
+//Cargamos el archivo de interaciones buenas.
+
+const dataDir = path.resolve('./data');
+const filePath = path.join(dataDir, 'interactions.jsonl');
+
+async function ensureDataFile() {
+    try {
+        await fs.mkdir(dataDir, { recursive: true })
+    } catch (e) {
+        console.error('Error creando directorio en data: ', err);
+        throw err;
+    }
+
+    try {
+        await fs.access(filePath);
+    } catch {
+        await fs.writeFile(filePath, '', 'utf-8');
+    }
+}
+
+async function loadInteractions() {
+    await ensureDataFile();
+    const raw = await fs.readFile(filePath, 'utf-8');
+    if (!raw.trim()) return [];
+
+    return raw
+    .trim()
+    .split('\n')
+    .map(line => JSON.parse(line));
+}
+
+
+async function appendInteraction(message, response) {
+    await ensureDataFile();
+    const entry = [message, response];
+    const line = JSON.stringify(entry);
+    await fs.appendFile(filePath, line + '\n', 'utf-8');
+}
 
 function buildPrompt(newMsg, currentUser) {
     let p = SYSTEM_PROMPT;
@@ -45,11 +88,14 @@ function buildPrompt(newMsg, currentUser) {
 
 
 async function messageApi(message, user, text) {
+    const interactions = await loadInteractions();
+
     const result = await client.predict("/predict", {
         inputs: message,
-        top_p: 0,
-        temperature: 0,
-        chat_counter: 3
+        top_p: 1,
+        temperature: 0.8,
+        chat_counter: 0,
+        chatbot: interactions
     });
 
     const data = result.data;
@@ -58,8 +104,12 @@ async function messageApi(message, user, text) {
     const botReply = lastPair[1];
     console.log("Respuesta del bot:", botReply);
 
-    ragMemory.push({ userMessage: text, response: message });
+    ragMemory.push({ userMessage: text, response: botReply });
 
+    await appendInteraction(text, botReply);
+
+    console.log(`Interacciones cargadas: ${interactions.length + 1}`);
+    console.log(interactions)
     await ttsAndPlay(botReply);
 };
 

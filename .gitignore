@@ -12,3 +12,4 @@ command.wav
 # Tokens (todos los json dentro de data/tokens)
 data/tokens/*.json
 data/activeUsers.json
+data/interactions.jsonl
