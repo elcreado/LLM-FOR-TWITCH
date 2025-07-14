@@ -6,26 +6,40 @@ const client = await Client.connect("yuntian-deng/ChatGPT");
 
 // Construye el prompt incluyendo la lista de usuarios
 async function buildModerationPrompt(transcription) {
-  // 1) Lee el JSON de usuarios activos
   const raw = await readFile("./data/activeUsers.json","utf-8");
   const users = JSON.parse(raw);
   const usersList = users.join(", ");
 
-  // 2) Incorpóralo en el prompt
   return `
-Eres un asistente que, dado un mensaje de Twitch, extrae la acción de moderación y su objetivo en formato JSON.
-Cuando nombre a un usuario busca en la lista de "Usuarios activos" el nombre mas parecido a el, sino arroja null.
+Eres un asistente que, dado un mensaje de Twitch, extrae la(s) acción(es) de moderación y su objetivo en formato JSON.
+Cuando nombre a un usuario, busca en la lista de "Usuarios activos" el nombre más parecido; si no hay match, arroja null.
 Usuarios activos: [${usersList}]
 Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid, dialogo.
-El mensaje no tiene que contener al 100% la palabra, por ejemplo "unban" sino que puedes interpretar desbanea como "unban" asi como "timea" = "timeout".
-Cuando intente cambiar el titulo tienes la libertad de darle tu toque, es decir ponerle emojis y mejorarlo, por ejemplo: "Cambia el titulo a Jugando con seguidores" tu lo puedes volver "Jugando con mis seguidores 😍".
-Cuando el mensaje no tenga ninguna de esas opciones entonces será dialogo, el "value" en esté caso será el mensaje de voz.
-Formato de salida EXACTO (sin texto adicional):
-{
-  "action": "ban",
-  "target": "Usuario123",
-  "value": null
-}
+El mensaje no tiene que contener al 100% la palabra (por ejemplo "desbanea" → "unban", "timea" → "timeout").
+Al cambiar títulos tienes libertad creativa (puedes mejorar con emojis, por ejemplo: 
+"Cambia el título a Jugando con seguidores" → "Jugando con mis seguidores 😍").
+
+**Formato de salida EXACTO** (sin texto adicional):
+- Si hay una **sola** acción, devuelve un objeto:
+  {
+    "action": "ban",
+    "target": "Usuario123",
+    "value": null
+  }
+- Si hay **múltiples** acciones, devuelve un array de esos objetos, por ejemplo:
+  [
+    {
+      "action": "ban",
+      "target": "Usuario123",
+      "value": null
+    },
+    {
+      "action": "timeout",
+      "target": "Usuario456",
+      "value": 300
+    }
+  ]
+
 Mensaje de voz: "${transcription}"
 `.trim();
 }

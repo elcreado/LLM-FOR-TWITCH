@@ -14,6 +14,7 @@ export async function executeModeration(
 
   if (target) {
     user = await apiClient.users.getUserByName(target);
+    console.log(user.id)
 
     if (!user) {
       await chatClient.say(channelName,
@@ -30,6 +31,7 @@ export async function executeModeration(
       );
       return;
     }
+
   } else if (target == null) {
       console.log("El target es null");
   }
@@ -38,6 +40,8 @@ export async function executeModeration(
   try {
     switch (action) {
       case 'ban':
+        console.log(user);
+
         await apiClient.moderation.banUser(broadcasterId, {
           user: user.id,
           reason: value || "Moderación automática"
@@ -76,8 +80,7 @@ export async function executeModeration(
         break;
 
       case 'dialogo':
-        const user = "Elcreado_GG";
-        const prompt = buildPrompt(value, user);
+        const prompt = buildPrompt(value, "Elcreado_GG");
         await messageApi(prompt, user, value);
         
         break;

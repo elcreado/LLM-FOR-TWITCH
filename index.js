@@ -13,6 +13,7 @@ import { messageApi, ragMemory, buildPrompt } from './scripts/Bot/chatbotCall.js
 import { moderateCommand } from './scripts/Twitch/moderationApi.js';
 import { executeModeration } from './scripts/Twitch/moderationSystem.js';
 import { startVoiceRecorder } from './scripts/Bot/voiceRecorder.js';
+import { exec } from 'child_process';
 
 
 // ————————————————————————————————————————————————————————————
@@ -86,7 +87,7 @@ async function main() {
     const me = await apiClient.users.getUserByName(TWITCH_BROADCASTER_LOGIN);
     const listener = new EventSubWsListener({ authProvider, apiClient });
     await listener.start();
-    
+
     listener.onChannelRedemptionAdd(me.id, async (event) => {
         const { userDisplayName, rewardTitle, input } = event;
         if (rewardTitle !== 'Sara') return;
@@ -120,34 +121,37 @@ async function main() {
     // 5) Lógica de moderación por voz
     // Dentro de tu index.js, en la parte de startVoiceRecorder:
     startVoiceRecorder(async (modJson) => {
-        const { action, target, value } = modJson;
+
         const channelName = TWITCH_BROADCASTER_LOGIN;
         const broadcasterId = me.id;  // tu ID de broadcaster obtenido antes
 
-        // 1) Resolver el login exacto en tu set de activeUsers
-        const matched = [...activeUsers].find(u => {
-            return (
-                typeof u === 'string' &&
-                typeof target === 'string' &&
-                u.toLowerCase() === target.toLowerCase()
-            );
-        });
+        const commands = Array.isArray(modJson) ? modJson : [modJson];
 
-        // 2) Llamamos a executeModeration con el login resuelto
-        try {
-            await executeModeration(
-                modJson,
-                apiClient,
-                chatClient,
-                broadcasterId,
-                TWITCH_BROADCASTER_LOGIN
-            );
-        } catch (err) {
-            console.error('Error en executeModeration:', err);
-            await chatClient.say(
-                channelName,
-                `/me ⚠️ No pude ejecutar "${action}" sobre ${matched}.`
-            );
+        for (const cmd of commands) {
+            // 1) Resolver el login exacto en tu set de activeUsers
+            const matched = [...activeUsers].find(u => {
+                return (
+                    typeof u === 'string' &&
+                    typeof target === 'string' &&
+                    u.toLowerCase() === target.toLowerCase()
+                );
+            });
+
+            try {
+                await executeModeration(
+                    cmd,
+                    apiClient,
+                    chatClient,
+                    broadcasterId,
+                    channelName
+                );
+            } catch (err) {
+                console.error('Error en executeModeration: ', err);
+                await chatClient.say(
+                    channelName,
+                    `No se puede ejecutar el comando`
+                );
+            }
         }
     });
 
