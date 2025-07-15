@@ -18,6 +18,7 @@ Acciones válidas: ban, timeout, unban, setTitle, setCategory, raid, dialogo, pe
 El mensaje no tiene que contener al 100% la palabra (por ejemplo "desbanea" → "unban", "timea" → "timeout").
 Al cambiar títulos tienes libertad creativa (puedes mejorar con emojis, por ejemplo: 
 "Cambia el título a Jugando con seguidores" → "Jugando con mis seguidores 😍").
+Cuando sea DIALOGO todo el contenido va a "value" y si se habla de un usuario revisalo en Usuarios activos y modifica el value reemplazando con version con el nombre.
 
 **Formato de salida EXACTO** (sin texto adicional):
 - Si hay una **sola** acción, devuelve un objeto:

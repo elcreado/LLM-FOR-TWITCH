@@ -14,7 +14,6 @@ export async function executeModeration(
 
   if (target) {
     user = await apiClient.users.getUserByName(target);
-    console.log(user.id)
 
     if (!user) {
       await chatClient.say(channelName,
@@ -85,19 +84,12 @@ export async function executeModeration(
         break;
 
       case 'usuario':
-        if (target) {
-          await chatClient.say(channelName, `Usuario de roblox: Elcreado123456 ${target}`);
-        } else {
-          await chatClient.say(channelName, `Usuario de roblox: Elcreado123456`);
-        }
+        const sufijo = target ? `@${target}` : '';
+        await chatClient.say(channelName, `Usuario de roblox: Elcreado123456 ${target ? `@${target}` : ''}`);
         break;
 
       case 'pedir':
-        if (target) {
-          await chatClient.say(channelName, `Deja de pedir mamadas y mejor damelas o que wey? ${target}`);
-        } else {
-          await chatClient.say(channelName, `Deja de pedir mamadas y mejor damelas o que wey?`);
-        }
+        await chatClient.say(channelName, `Deja de pedir mamadas y mejor damelas o que wey? ${target ? `@${target}` : ''}`);
         break;
 
       case 'redes':
