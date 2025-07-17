@@ -9,7 +9,7 @@ const { TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_BROADCASTER_LOGIN } = pro
 const clientId = TWITCH_CLIENT_ID;
 const clientSecret = TWITCH_CLIENT_SECRET;
 const redirectUri = 'http://localhost';
-const code = 'vc786fj2v6xftdajfh9z1bi2sp7p7c';
+const code = TWITCH_ACCESS_CODE;
 
 try {
   const tokenData = await exchangeCode(clientId, clientSecret, code, redirectUri);
