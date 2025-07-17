@@ -1,46 +1,46 @@
 # AI Assistant and Co-Streamer for Twitch (Beta)
 
-> Una solución TTS + LLM diseñada para mejorar la experiencia de streaming en Twitch mediante comandos de voz y moderación automatizada.
+> A TTS + LLM solution designed to enhance the Twitch streaming experience with voice commands and automated moderation.
 
 [![Node.js LTS](https://img.shields.io/badge/Node.js-LTS-green.svg)]() [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📖 Tabla de Contenidos
+## 📖 Table of Contents
 
-1. [Descripción](#descripción)  
-2. [Características](#características)  
-3. [Tecnologías](#tecnologías)  
-4. [Instalación](#instalación)  
-5. [Uso](#uso)  
-6. [Contribución](#contribución)  
-7. [Licencia](#licencia)  
+1. [Overview](#overview)  
+2. [Features](#features)  
+3. [Technologies](#technologies)  
+4. [Installation](#installation)  
+5. [Usage](#usage)  
+6. [Contributing](#contributing)  
+7. [License](#license)  
 
 ---
 
-## Descripción
+## Overview
 
-**AI Assistant and Co-Streamer for Twitch (Beta)** es un sistema de Inteligencia Artificial basado en TTS (Text‑to‑Speech) y LLM (Language Model) que:
+**AI Assistant and Co-Streamer for Twitch (Beta)** is an AI-driven system combining TTS (Text‑to‑Speech) and an LLM (Language Model) to:
 
-- Facilita la **moderación** de chat mediante **comandos de voz**.  
-- Integra a **Sara**, una IA que interactúa con el chat en directo:  
-  - Selecciona mensajes de forma aleatoria o a través del canjeo de puntos del canal.  
-  - Responde vocalmente usando un motor de TTS.  
+- Enable **voice-activated** chat moderation.  
+- Integrate **Sara**, an AI that interacts live in chat by:  
+  - Selecting messages randomly or via channel point redemptions.  
+  - Responding vocally using a TTS engine.  
 
-Nuestro objetivo es elevar la experiencia de streaming para creadores pequeños, ofreciendo co‑streaming y moderación sin necesidad de personal humano adicional.
+Our goal is to elevate the streaming experience for smaller creators by providing co-streaming and moderation without relying on additional human staff.
 
-## Características
+## Features
 
-- Moderación de chat activada por voz.  
-- Interacción en tiempo real con la IA **Sara**.  
-- Selección de mensajes vía canjeo de puntos del canal.  
-- Respuestas de voz generadas por TTS.  
-- Arquitectura modular y extensible para futuras integraciones.
+- Voice-activated chat moderation  
+- Real-time interaction with AI **Sara**  
+- Message selection through channel point redemptions  
+- Voice responses generated via TTS  
+- Modular and extensible architecture for future integrations  
 
-## Tecnologías
+## Technologies
 
-- **Lenguaje y entorno**:
-  - Node.js  
-  - JavaScript  
-- **Librerías y paquetes**:
+- **Runtime**: Node.js  
+- **Language**: JavaScript  
+
+- **Libraries & Packages**:
   - [Twurple](https://github.com/twurple/twurple)  
   - [dotenv](https://github.com/motdotla/dotenv)  
   - [fetch-blob](https://github.com/node-fetch/fetch-blob)  
@@ -51,14 +51,15 @@ Nuestro objetivo es elevar la experiencia de streaming para creadores pequeños,
   - [node-record-lpcm16](https://github.com/…)  
   - [play-sound](https://github.com/…)  
   - [sound-play](https://github.com/…)  
-- **APIs externas**:
-  - **yuntian-deng/ChatGPT**: generación de lenguaje natural (LLM).  
-  - **skspavithiran/whisper**: transcripción de audio a texto.  
-  - **hamza2923/Text_To_Voice**: síntesis de voz (TTS).
 
-## Instalación
+- **External APIs**:
+  - **yuntian-deng/ChatGPT**: Natural language generation (LLM).  
+  - **skspavithiran/whisper**: Audio-to-text transcription.  
+  - **hamza2923/Text_To_Voice**: Text-to-speech synthesis (TTS).  
+
+## Installation
 
 ```bash
-git clone https://github.com/tu-usuario/ai-co-streamer-twitch.git
+git clone https://github.com/your-username/ai-co-streamer-twitch.git
 cd ai-co-streamer-twitch
 npm install
