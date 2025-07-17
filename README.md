@@ -4,16 +4,6 @@
 
 [![Node.js LTS](https://img.shields.io/badge/Node.js-LTS-green.svg)]() [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📖 Table of Contents
-
-1. [Overview](#overview)  
-2. [Features](#features)  
-3. [Technologies](#technologies)  
-4. [Installation](#installation)  
-5. [Usage](#usage)  
-6. [Contributing](#contributing)  
-7. [License](#license)  
-
 ---
 
 ## Overview
