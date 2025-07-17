@@ -1,3 +1,3 @@
-AI ASSISTANT AND CO-STREAMER FOR TWITCH!! 🤖
+AI Assistant and Co-Streamer for Twitch (Beta)
 
-This is a BETA project that wants to improve the experiences for the small STREAMERS that don't have much VIEWERS and MODERATORS, giving the posibility to moderate with VOICE COMMANDS and TALK WITH AN AI WHILE STREAMING!! 🤯🤯
+Introducing a revolutionary tool designed to enhance the streaming experience for small Twitch streamers. Our AI-powered assistant offers innovative features, including voice-command moderation and interactive real-time conversations, to support streamers with limited viewers or moderators. Elevate your streams with seamless engagement and professional moderation
