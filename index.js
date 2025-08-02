@@ -109,13 +109,13 @@ async function main() {
         if (msg.isRedemption) return;
         // Decide si responder con SARA
 
-        const disparoAleatorio = Math.random() < 0.1;
+        // const disparoAleatorio = Math.random() < 0.1;
 
-        console.log(user);
-        if (disparoAleatorio) {
-            const prompt = buildPrompt(text, user);
-            await messageApi(prompt, user, text);
-        }
+        // console.log(user);
+        // if (disparoAleatorio) {
+        //     const prompt = buildPrompt(text, user);
+        //     await messageApi(prompt, user, text);
+        // }
     });
 
     // 5) Lógica de moderación por voz
